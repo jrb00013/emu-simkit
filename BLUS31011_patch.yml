@@ -1,0 +1,21 @@
+Version: 1.2
+
+PPU-fa8ffe9ae59bfa8575027c9a6ec5aab7fb0215ab:
+  "BO2 split-screen: disable hang-detect watchdog (couchlink)":
+    Games:
+      "Call of Duty: Black Ops II":
+        BLUS31011: [ 01.00 ]
+    Author: "couchlink"
+    Notes: |
+      Split-screen livelocks the main thread under doubled SPURS load; Treyarch's
+      hang-detect thread then deliberately writes to 0x17 and kills the process.
+      This does NOT fix the livelock — it removes the suicide so the session can
+      survive / recover, and pairs with config_BLUS31011.yml load-reduction settings.
+      Patch A: force watchdog-enabled flag read to 0 (skip entire hang path).
+      Patch B: NOP the intentional crash store (belt-and-suspenders).
+    Patch Version: 1.1
+    Patch:
+      # 0041c3cc  lbz r3,-0x32f4(r3)  ->  li r3,0
+      - [ be32, 0x0041c3cc, 0x38600000 ]
+      # 0041c414  stw r4,0(r3)        ->  nop
+      - [ be32, 0x0041c414, 0x60000000 ]

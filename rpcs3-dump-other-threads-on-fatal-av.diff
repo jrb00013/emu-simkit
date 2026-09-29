@@ -1,0 +1,110 @@
+diff --git a/Utilities/Thread.cpp b/Utilities/Thread.cpp
+index 05e7577e5..ae4768b2d 100644
+--- a/Utilities/Thread.cpp
++++ b/Utilities/Thread.cpp
+@@ -133,6 +133,20 @@ std::string dump_useful_thread_info()
+ 	return result;
+ }
+ 
++enum cpu_threads_brief_info_dump_t : u32 {};
++
++std::string dump_other_threads_brief_info()
++{
++	std::string result;
++
++	if (auto cpu = get_current_cpu_thread())
++	{
++		fmt::append(result, "%s", cpu_threads_brief_info_dump_t{cpu->id});
++	}
++
++	return result;
++}
++
+ #ifndef _WIN32
+ bool IsDebuggerPresent()
+ {
+@@ -2223,6 +2237,7 @@ bool handle_access_violation(u32 addr, bool is_writing, bool is_exec, ucontext_t
+ 	if (g_tls_access_violation_recovered != addr)
+ 	{
+ 		vm_log.notice("\n%s", dump_useful_thread_info());
++		vm_log.notice("\n%s", dump_other_threads_brief_info());
+ 		vm_log.fatal("Access violation %s location 0x%x (%s)", is_writing ? "writing" : (is_exec ? "executing" : "reading"), addr, (is_writing && vm::check_addr(addr)) ? "read-only memory" : "unmapped memory");
+ 	}
+ 
+diff --git a/rpcs3/Emu/CPU/CPUThread.cpp b/rpcs3/Emu/CPU/CPUThread.cpp
+index baa8519f3..d6bbc64e8 100644
+--- a/rpcs3/Emu/CPU/CPUThread.cpp
++++ b/rpcs3/Emu/CPU/CPUThread.cpp
+@@ -11,6 +11,7 @@
+ #include "Emu/Cell/lv2/sys_spu.h"
+ #include "Emu/Cell/PPUThread.h"
+ #include "Emu/Cell/SPUThread.h"
++#include "Emu/Cell/timers.hpp"
+ #include "Emu/RSX/RSXThread.h"
+ #include "Emu/perf_meter.hpp"
+ 
+@@ -159,6 +160,64 @@ void fmt_class_string<cpu_threads_emulation_info_dump_t>::format(std::string& ou
+ 	}
+ }
+ 
++enum cpu_threads_brief_info_dump_t : u32 {};
++
++template<>
++void fmt_class_string<cpu_threads_brief_info_dump_t>::format(std::string& out, u64 arg)
++{
++	// Brief summary of every PPU and SPU thread, excluding the ones fully dumped by cpu_threads_emulation_info_dump_t.
++	// Guest watchdogs (e.g. a game's "hang detect" thread) often crash deliberately (e.g. by writing to address 0x17)
++	// after another thread stopped making progress. The faulting thread is then not the interesting one,
++	// so print where every other thread is currently waiting.
++	const u32 excluded_cpu_id = static_cast<u32>(arg);
++
++	out += "\nBrief information of other threads:\n===================================\n";
++
++	// Do not lock: this may be called from within an access violation handler
++	idm::select<named_thread<ppu_thread>>([&](u32 id, named_thread<ppu_thread>& ppu)
++	{
++		if (id == ppu_thread::id_base || id == excluded_cpu_id)
++		{
++			return;
++		}
++
++		fmt::append(out, "%s: State: %s, CIA: 0x%x, LR: 0x%x", ppu.get_name(), ppu.state.load(), ppu.cia, ppu.lr);
++
++		if (const char* func = ppu.current_function)
++		{
++			fmt::append(out, ", In function: %s", func);
++		}
++		else if (const char* last_func = ppu.last_function)
++		{
++			fmt::append(out, ", Last function: %s", last_func);
++		}
++
++		if (const u64 start_time = ppu.start_time)
++		{
++			fmt::append(out, ", Waiting: %fs", (get_guest_system_time() - start_time) / 1000000.);
++		}
++
++		out += "\n Call stack:";
++
++		for (const auto& [addr, sp] : ppu.dump_callstack_list())
++		{
++			fmt::append(out, " 0x%08x", addr);
++		}
++
++		out += '\n';
++	}, idm::unlocked);
++
++	idm::select<named_thread<spu_thread>>([&](u32 id, named_thread<spu_thread>& spu)
++	{
++		if (id == excluded_cpu_id)
++		{
++			return;
++		}
++
++		fmt::append(out, "%s: State: %s, PC: 0x%05x\n", spu.get_name(), spu.state.load(), spu.pc);
++	}, idm::unlocked);
++}
++
+ // CPU profiler thread
+ struct cpu_prof
+ {

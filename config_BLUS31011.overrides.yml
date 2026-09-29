@@ -1,0 +1,22 @@
+# Applied on top of the user's RPCS3 config when installing the BO2 pack.
+# These are the locksmith knobs for split-screen: kill the watchdog in
+# BLUS31011_patch.yml, and stay under the SPURS livelock cliff here.
+Core:
+  SPU Block Size: Safe
+  Accurate SPU DMA: true
+  PPU Reservation Priority Over SPUs: true
+  Accurate Cache Line Stores: true
+  Accurate RSX reservation access: true
+  Disable SPU GETLLAR Spin Optimization: true
+  SPU Wake-Up Delay: 20
+  Max SPURS Threads: 4
+Video:
+  RSX FIFO Fetch Accuracy: Atomic
+  Accurate ZCULL stats: false
+  Relaxed ZCULL Sync: true
+  Frame limit: 30
+  Resolution: 1280x720
+  Resolution Scale: 100
+  Exclusive Fullscreen Mode: Disable
+Miscellaneous:
+  Start games in fullscreen mode: false
