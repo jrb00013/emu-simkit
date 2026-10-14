@@ -48,7 +48,10 @@ def _cmd_config_merge(args: argparse.Namespace) -> int:
 
 def _cmd_patch_validate(args: argparse.Namespace) -> int:
     target = Path(args.path)
-    files = list(target.glob("*.yml")) + list(target.glob("*.yaml")) if target.is_dir() else [target]
+    if target.is_dir():
+        files = list(target.glob("*.yml")) + list(target.glob("*.yaml"))
+    else:
+        files = [target]
     # also check pack patches
     if target.is_dir() and (target / "pack.yml").exists():
         manifest = load_manifest(target)
@@ -67,13 +70,17 @@ def _cmd_patch_validate(args: argparse.Namespace) -> int:
 
 
 def _cmd_install(args: argparse.Namespace) -> int:
-    root = require_root(args.root, backend=args.backend) if args.backend else require_root(args.root)
-    # allow manifest to pick backend
     manifest = load_manifest(args.pack)
     if args.backend:
         manifest.backend = args.backend
     root = require_root(args.root, backend=manifest.backend)
-    plan = plan_install(args.pack, root, dry_run=args.dry_run, backup=not args.no_backup, manifest=manifest)
+    plan = plan_install(
+        args.pack,
+        root,
+        dry_run=args.dry_run,
+        backup=not args.no_backup,
+        manifest=manifest,
+    )
     for line in apply_plan(plan):
         print(line)
     return 0
