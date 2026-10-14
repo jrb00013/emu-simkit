@@ -9,6 +9,7 @@ from emu_simkit.backends import get_backend
 from emu_simkit.backup import backup_file
 from emu_simkit.config.merge import merge_overrides, write_yaml
 from emu_simkit.errors import PackError
+from emu_simkit.packs.inventory import record_install
 from emu_simkit.packs.manifest import load_manifest
 from emu_simkit.types import InstallPlan, PackManifest
 
@@ -84,4 +85,28 @@ def apply_plan(plan: InstallPlan) -> list[str]:
         write_yaml(out, merged)
         actions.append(f"merged overrides -> {out}")
 
+    return actions
+
+
+def install_pack(
+    pack_dir: Path | str,
+    root: Path | str,
+    *,
+    dry_run: bool = False,
+    backup: bool = True,
+    backend: str | None = None,
+) -> list[str]:
+    """Plan, apply, and record a pack install."""
+    pack_dir = Path(pack_dir)
+    root = Path(root)
+    manifest = load_manifest(pack_dir)
+    if backend:
+        manifest.backend = backend
+    plan = plan_install(
+        pack_dir, root, dry_run=dry_run, backup=backup, manifest=manifest
+    )
+    actions = apply_plan(plan)
+    if not dry_run:
+        record_install(root, pack_dir)
+        actions.append(f"recorded install for {manifest.name}")
     return actions
