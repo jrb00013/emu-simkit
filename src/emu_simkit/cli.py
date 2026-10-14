@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from pathlib import Path
 
@@ -36,13 +35,14 @@ def _cmd_backends(_: argparse.Namespace) -> int:
 
 def _cmd_config_merge(args: argparse.Namespace) -> int:
     merged = merge_overrides(args.base, args.overrides)
+    import yaml
+
+    dumped = yaml.safe_dump(merged, sort_keys=False, default_flow_style=False)
     if args.out:
-        write_yaml(args.out, merged)
+        Path(args.out).write_text(dumped, encoding="utf-8")
         print(args.out)
     else:
-        write_yaml("/dev/stdout", merged) if False else print(
-            __import__("yaml").safe_dump(merged, sort_keys=False)
-        )
+        print(dumped, end="")
     return 0
 
 
