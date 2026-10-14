@@ -52,7 +52,7 @@ def restore_snapshot(
         if tmp.exists():
             shutil.rmtree(tmp)
         tmp.mkdir(parents=True)
-        tar.extractall(tmp)
+        tar.extractall(tmp, filter="data")
         mapping = {
             "config": be.config_dir(root),
             "patches": be.patches_dir(root),
