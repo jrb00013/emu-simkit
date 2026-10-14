@@ -24,6 +24,7 @@ from emu_simkit.packs.install import install_pack
 from emu_simkit.packs.inventory import list_installed, uninstall_pack
 from emu_simkit.packs.manifest import load_manifest
 from emu_simkit.packs.scaffold import scaffold_pack
+from emu_simkit.packs.batch import validate_many
 from emu_simkit.packs.validate import validate_pack
 from emu_simkit.patches.loader import load_patch_file
 from emu_simkit.patches.validate import validate_patch_doc
@@ -206,6 +207,21 @@ def _cmd_restore(args: argparse.Namespace) -> int:
     return 0
 
 
+
+def _cmd_pack_batch_validate(args: argparse.Namespace) -> int:
+    results = validate_many(args.root)
+    rc = 0
+    for path, warnings in results.items():
+        errors = [w for w in warnings if str(w).startswith("ERROR:")]
+        if errors:
+            rc = 1
+            print(f"FAIL {path}")
+            for e in errors:
+                print(f"  {e}")
+        else:
+            print(f"OK {path}" + (f" ({len(warnings)} warnings)" if warnings else ""))
+    return rc
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="emu-simkit", description="Emulator/simulator pack toolkit")
     p.add_argument("--version", action="version", version=f"emu-simkit {__version__}")
@@ -286,6 +302,9 @@ def build_parser() -> argparse.ArgumentParser:
     pvfy = pksub.add_parser("verify", help="verify PACK.lock.json")
     pvfy.add_argument("pack")
     pvfy.set_defaults(func=_cmd_pack_verify)
+    pbv = pksub.add_parser("batch-validate", help="validate all packs under a tree")
+    pbv.add_argument("root")
+    pbv.set_defaults(func=_cmd_pack_batch_validate)
 
     diag = sub.add_parser("diagnose", help="diagnostics")
     dsub = diag.add_subparsers(dest="diag_cmd", required=True)
