@@ -101,15 +101,15 @@ def _cmd_patch_validate(args: argparse.Namespace) -> int:
 
 def _cmd_install(args: argparse.Namespace) -> int:
     manifest = load_manifest(args.pack)
-    if args.backend:
-        manifest.backend = args.backend
-    root = require_root(args.root, backend=manifest.backend)
+    backend = args.backend or manifest.backend
+    root = require_root(args.root, backend=backend)
     run_hooks("before_install", pack=args.pack, root=root)
     for line in install_pack(
         args.pack,
         root,
         dry_run=args.dry_run,
         backup=not args.no_backup,
+        backend=backend,
     ):
         print(line)
     run_hooks("after_install", pack=args.pack, root=root)
