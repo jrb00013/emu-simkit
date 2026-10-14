@@ -1,0 +1,6 @@
+HASH-example00000000000000000000000000000000:
+  "example: no-op demo patch":
+    "Example Title":
+      EXAMPLE00000:
+        "01.00":
+          Enabled: true
