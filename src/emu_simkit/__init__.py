@@ -5,7 +5,7 @@ from emu_simkit.config.merge import merge_overrides
 from emu_simkit.packs.install import install_pack
 from emu_simkit.packs.manifest import load_manifest
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 __all__ = [
     "__version__",
     "get_backend",

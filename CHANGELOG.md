@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.1
+
+- In-place config apply that preserves comments/ordering
+- Deep-merge `patch_config` (no more blind overwrite)
+- `apply_mode`: custom | inplace | both | none
+- `check` / `plan` preflight; install refuses bad roots unless `--force`
+- OS path probing for emulator-like trees; doctor root health
+- Real e2e sample-pack workflow + tests
+
 ## 0.2.0
 
 - Pack scaffold (`pack init`), zip export/import, whole-pack validate
