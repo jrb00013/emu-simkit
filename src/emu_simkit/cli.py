@@ -19,9 +19,11 @@ from emu_simkit.envinfo import probe
 from emu_simkit.hooks import run_hooks
 from emu_simkit.integrity import verify_lockfile, write_lockfile
 from emu_simkit.logging_util import configure_logging
+from emu_simkit.config.inplace import apply_inplace
 from emu_simkit.packs.archive import export_pack, import_pack
+from emu_simkit.packs.check import check_pack_against_root
 from emu_simkit.packs.batch import validate_many
-from emu_simkit.packs.install import install_pack
+from emu_simkit.packs.install import format_plan, install_pack, plan_install
 from emu_simkit.packs.inventory import list_installed, uninstall_pack
 from emu_simkit.packs.manifest import load_manifest
 from emu_simkit.packs.scaffold import scaffold_pack
@@ -104,6 +106,13 @@ def _cmd_install(args: argparse.Namespace) -> int:
     manifest = load_manifest(args.pack)
     backend = args.backend or manifest.backend
     root = require_root(args.root, backend=backend)
+    if not args.force:
+        result = check_pack_against_root(args.pack, root, backend=backend)
+        if not result.ok:
+            print(result.as_text(), file=sys.stderr)
+            return 1
+        for w in result.warnings:
+            print(f"warn: {w}", file=sys.stderr)
     run_hooks("before_install", pack=args.pack, root=root)
     for line in install_pack(
         args.pack,
@@ -222,6 +231,33 @@ def _cmd_pack_batch_validate(args: argparse.Namespace) -> int:
             print(f"OK {path}" + (f" ({len(warnings)} warnings)" if warnings else ""))
     return rc
 
+
+def _cmd_check(args: argparse.Namespace) -> int:
+    manifest = load_manifest(args.pack)
+    backend = args.backend or manifest.backend
+    root = require_root(args.root, backend=backend)
+    result = check_pack_against_root(args.pack, root, backend=backend)
+    print(result.as_text())
+    return 0 if result.ok else 1
+
+
+def _cmd_plan(args: argparse.Namespace) -> int:
+    manifest = load_manifest(args.pack)
+    backend = args.backend or manifest.backend
+    root = require_root(args.root, backend=backend)
+    if args.backend:
+        manifest.backend = args.backend
+    plan = plan_install(args.pack, root, dry_run=True, manifest=manifest)
+    print(format_plan(plan))
+    return 0
+
+
+def _cmd_config_apply(args: argparse.Namespace) -> int:
+    for line in apply_inplace(args.target, args.overrides, backup=not args.no_backup):
+        print(line)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="emu-simkit", description="Emulator/simulator pack toolkit")
     p.add_argument("--version", action="version", version=f"emu-simkit {__version__}")
@@ -258,7 +294,19 @@ def build_parser() -> argparse.ArgumentParser:
     pv.add_argument("path")
     pv.set_defaults(func=_cmd_patch_validate)
 
-    inst = sub.add_parser("install", help="install a pack into an emulator root")
+    chk = sub.add_parser("check", help="preflight: validate pack against a root")
+chk.add_argument("pack")
+chk.add_argument("--root")
+chk.add_argument("--backend")
+chk.set_defaults(func=_cmd_check)
+
+pln = sub.add_parser("plan", help="print install plan without writing")
+pln.add_argument("pack")
+pln.add_argument("--root")
+pln.add_argument("--backend")
+pln.set_defaults(func=_cmd_plan)
+
+inst = sub.add_parser("install", help="install a pack into an emulator root")
     inst.add_argument("pack")
     inst.add_argument("--root")
     inst.add_argument("--backend")
