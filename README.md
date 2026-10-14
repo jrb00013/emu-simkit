@@ -1,17 +1,21 @@
 # emu-simkit
 
-Generalized **library + CLI** for console emulator / simulator pack work.
+A **practical** toolkit for installing and managing emulator/simulator **packs**:
+patches, config knobs, enable flags, backups, plans, and uninstalls.
 
-Not tied to one game, one title ID, or one emulator. Bring a **backend**
-(or use `generic` / `flat` / `portable`) and use the same APIs for:
+Not tied to one game or one emulator. Layout differences go in **backends**.
 
-- discovering emulator install trees
-- merging and diffing config overrides
-- loading, validating, and enabling patch packs
-- scaffolding, installing, listing, and uninstalling packs
-- lockfiles, zip export/import, config snapshots
-- parsing / watching logs and shaping diagnostics
-- hooks and entry-point backend plugins
+## Why this exists
+
+Hand-copying patch YAML and sed-editing `config.yml` does not scale. emu-simkit
+gives you a repeatable pack format and a CLI that:
+
+1. **Checks** a pack against a real tree before writing
+2. **Plans** exactly what will change
+3. **Installs** with backups (patches copy, `patch_config` **deep-merges**,
+   overrides write a custom config and/or apply **in-place** keys)
+4. **Lists / uninstalls** using an on-disk inventory
+5. **Diffs / applies** config knobs without nuking comments when using inplace
 
 ## Install
 
@@ -19,42 +23,63 @@ Not tied to one game, one title ID, or one emulator. Bring a **backend**
 pip install -e ".[dev]"
 ```
 
-## Quick start
+## 5-minute real workflow
 
 ```bash
-emu-simkit doctor
-emu-simkit backends
-emu-simkit pack init ./my-pack --name my-pack --title EXAMPLE00000
-emu-simkit patch validate ./my-pack
-emu-simkit pack lock ./my-pack && emu-simkit pack verify ./my-pack
-emu-simkit install ./my-pack --root "$EMU_DIR" --dry-run
-emu-simkit list --root "$EMU_DIR"
-emu-simkit config merge --base config.yml --overrides overrides.yml
-emu-simkit config diff a.yml b.yml
-emu-simkit diagnose log emulator.log
-emu-simkit snapshot --root "$EMU_DIR" --out ./snaps
+# fake emulator root (or export EMU_SIMKIT_ROOT=/path/to/real)
+mkdir -p /tmp/emu/{patches,config/custom_configs}
+printf 'Core:\n  Example Accuracy: false\nVideo:\n  Frame limit: 60\n' \
+  > /tmp/emu/config/config.yml
+
+emu-simkit check examples/sample-pack --root /tmp/emu
+emu-simkit plan  examples/sample-pack --root /tmp/emu
+emu-simkit install examples/sample-pack --root /tmp/emu
+emu-simkit list --root /tmp/emu
+emu-simkit uninstall sample-pack --root /tmp/emu
 ```
+
+In-place knobs on the live global config (preserves `# comments`):
+
+```bash
+emu-simkit config apply \
+  --target /tmp/emu/config/config.yml \
+  --overrides examples/sample-pack/overrides.yml
+```
+
+## Pack format (`pack.yml`)
+
+```yaml
+name: my-pack
+backend: generic          # or flat / portable / your plugin
+apply_mode: custom        # custom | inplace | both | none
+patches: [foo_patch.yml]
+overrides: [overrides.yml]
+patch_config: patch_config.yml
+```
+
+| `apply_mode` | Behavior |
+|--------------|----------|
+| `custom` | Write `config/custom_configs/config_<name>.yml` (merged with global) |
+| `inplace` | Edit keys in the global `config.yml` in place |
+| `both` | Do both |
+| `none` | Skip overrides |
+
+`patch_config` is **merged** into the existing file so other titles stay enabled.
 
 ## Library
 
 ```python
-from emu_simkit import install_pack, load_manifest, merge_overrides, register_backend
-from emu_simkit.packs import scaffold_pack, export_pack
-from emu_simkit.integrity import write_lockfile, verify_lockfile
+from emu_simkit import install_pack, load_manifest
+from emu_simkit.packs import check_pack_against_root, format_plan, plan_install
+from emu_simkit.config import apply_inplace, merge_overrides
 ```
 
-## Backends
+## Docs
 
-| Name | Layout |
-|------|--------|
-| `generic` | `patches/`, `config/config.yml`, `config/custom_configs/` |
-| `flat` | `patches/`, `config.yml` at root |
-| `portable` | everything under `data/` |
+- [Architecture](docs/architecture.md)
+- [Pack format](docs/pack-format.md)
+- [CLI](docs/cli.md)
+- [API](docs/api.md)
+- [Backends](docs/backends.md)
 
-Register more via `register_backend(...)` or entry point group `emu_simkit.backends`.
-
-## Legacy
-
-Historical single-title material is under [`legacy/bo2-splitscreen/`](legacy/bo2-splitscreen/).
-
-See [`docs/`](docs/) for architecture, pack format, CLI, and backends.
+Legacy single-title material: [`legacy/bo2-splitscreen/`](legacy/bo2-splitscreen/).

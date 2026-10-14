@@ -1,7 +1,11 @@
 name: sample-pack
-version: 0.1.0
-description: Minimal example pack for emu-simkit
+version: 0.2.0
+description: >
+  Worked example pack. Demonstrates patches, patch_config merge,
+  and custom config generation. Point --root at any tree with patches/
+  and config/ to dry-run a real install.
 backend: generic
+apply_mode: custom
 titles:
   - EXAMPLE00000
 patches:

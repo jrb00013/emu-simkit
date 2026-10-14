@@ -5,6 +5,8 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+from emu_simkit.discover import looks_like_emu_root, probe_roots
+
 
 class GenericBackend:
     """Default layout used when no emulator-specific backend is registered.
@@ -28,8 +30,13 @@ class GenericBackend:
             p = Path(env).expanduser()
             if p.is_dir():
                 roots.append(p.resolve())
+        for probed in probe_roots():
+            if probed not in roots and looks_like_emu_root(probed):
+                # prefer trees that match generic layout
+                if (probed / "config").exists() or (probed / "patches").exists():
+                    roots.append(probed)
         cwd = Path.cwd()
-        if (cwd / "patches").is_dir() or (cwd / "config").is_dir():
+        if ((cwd / "patches").is_dir() or (cwd / "config").is_dir()) and cwd.resolve() not in roots:
             roots.append(cwd.resolve())
         return roots
 
