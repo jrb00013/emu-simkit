@@ -3,14 +3,14 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "rpcs3-sim-toolkit"
+name = "emu-simkit"
 version = "0.1.0"
-description = "Generalized toolkit for RPCS3-class PS3 simulators: config, patches, packs, diagnostics"
+description = "Generalized toolkit for console emulator/simulator packs: config, patches, install, diagnostics, pluggable backends"
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.10"
 authors = [{ name = "jrb00013" }]
-keywords = ["rpcs3", "ps3", "emulator", "toolkit", "patches", "diagnostics"]
+keywords = ["emulator", "simulator", "toolkit", "patches", "config", "diagnostics"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Environment :: Console",
@@ -28,11 +28,11 @@ dependencies = [
 dev = ["pytest>=7.0", "ruff>=0.4"]
 
 [project.scripts]
-rpcs3-simkit = "rpcs3_simkit.cli:main"
+emu-simkit = "emu_simkit.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/jrb00013/rpcs3-sim-toolkit"
-Repository = "https://github.com/jrb00013/rpcs3-sim-toolkit"
+Homepage = "https://github.com/jrb00013/emu-simkit"
+Repository = "https://github.com/jrb00013/emu-simkit"
 
 [tool.setuptools.packages.find]
 where = ["src"]

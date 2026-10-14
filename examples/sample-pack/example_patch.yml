@@ -1,0 +1,14 @@
+Version: 1.2
+
+HASH-example00000000000000000000000000000000:
+  "example: no-op demo patch":
+    Games:
+      "Example Title":
+        EXAMPLE00000: [ 01.00 ]
+    Author: "emu-simkit"
+    Notes: |
+      Demonstration patch document for validate/install dry-runs.
+      Does not target a real binary.
+    Patch Version: 1.0
+    Patch:
+      - [ be32, 0x00000000, 0x60000000 ]

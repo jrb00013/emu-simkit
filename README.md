@@ -1,20 +1,15 @@
-# rpcs3-sim-toolkit
+# emu-simkit
 
-Generalized **library + CLI** for RPCS3-class PS3 simulators.
+Generalized **library + CLI** for console emulator / simulator pack work.
 
-Use this when you need reusable tooling around:
+Not tied to one game, one title ID, or one emulator. Bring a **backend**
+(or use the generic filesystem backend) and use the same APIs for:
 
-- discovering RPCS3 install trees (Linux, Windows, WSL, macOS)
-- merging title-specific `config.yml` overrides
-- loading / enabling patch YAML packs
-- installing packs into an emulator tree (with backup + dry-run)
-- parsing logs and shaping diagnostic dumps
-
-## Not this repo
-
-Black Ops II split-screen survival is **not** maintained here anymore.
-That lives indefinitely in the couchlink-linked RPCS3 fork. The old
-BLUS31011 pack is archived under [`legacy/bo2-splitscreen/`](legacy/bo2-splitscreen/).
+- discovering emulator install trees
+- merging title/profile config overrides
+- loading and enabling patch packs
+- installing packs (backup + dry-run)
+- parsing logs and shaping diagnostics
 
 ## Install
 
@@ -25,19 +20,26 @@ pip install -e ".[dev]"
 ## Quick start
 
 ```bash
-rpcs3-simkit discover
-rpcs3-simkit config merge --base config.yml --overrides my_title.yml --out out.yml
-rpcs3-simkit patch validate packs/example/
-rpcs3-simkit install ./my-pack --rpcs3 "$RPCS3_DIR" --dry-run
-rpcs3-simkit diagnose log RPCS3.log
+emu-simkit discover
+emu-simkit config merge --base config.yml --overrides overrides.yml --out out.yml
+emu-simkit patch validate ./my-pack
+emu-simkit install ./my-pack --root "$EMU_DIR" --dry-run
+emu-simkit diagnose log emulator.log
 ```
 
 ## Library
 
 ```python
-from rpcs3_simkit.paths import discover_rpcs3
-from rpcs3_simkit.config.merge import merge_overrides
-from rpcs3_simkit.patches.loader import load_patch_file
+from emu_simkit.paths import discover_roots
+from emu_simkit.config.merge import merge_overrides
+from emu_simkit.patches.loader import load_patch_file
+from emu_simkit.backends import get_backend
 ```
 
-See [`docs/`](docs/) for architecture, CLI, and pack format.
+## Legacy
+
+The old Black Ops II survival pack that used to live at the repo root is
+frozen under [`legacy/bo2-splitscreen/`](legacy/bo2-splitscreen/). Runtime
+behavior for that title belongs elsewhere; this repo is the reusable toolkit.
+
+See [`docs/`](docs/) for architecture, pack format, and CLI.

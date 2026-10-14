@@ -1,12 +1,12 @@
-"""Shared exception types for the toolkit."""
+"""Shared exception types for emu-simkit."""
 
 
 class SimkitError(Exception):
-    """Base error for rpcs3-sim-toolkit."""
+    """Base error for emu-simkit."""
 
 
 class PathNotFoundError(SimkitError):
-    """RPCS3 tree or required file was not found."""
+    """Emulator tree or required file was not found."""
 
 
 class ConfigError(SimkitError):
@@ -23,3 +23,7 @@ class PackError(SimkitError):
 
 class DiagnosticError(SimkitError):
     """Log parse or diagnostic shaping failure."""
+
+
+class BackendError(SimkitError):
+    """Pluggable emulator backend failure."""
