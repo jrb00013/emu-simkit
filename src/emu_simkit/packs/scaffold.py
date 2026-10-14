@@ -69,6 +69,7 @@ def scaffold_pack(
         patches=[patch_name],
         overrides=["overrides.yml"],
         patch_config="patch_config.yml",
+        apply_mode="custom",
     )
     save_manifest(dest / "pack.yml", manifest)
     return dest
