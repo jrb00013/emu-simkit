@@ -2,12 +2,14 @@
 
 emu-simkit is layered so no single emulator owns the core:
 
-1. **Backends** (`emu_simkit.backends`) — filesystem layout + discovery
-2. **Config** — YAML load / deep-merge / profiles
+1. **Backends** — filesystem layout + discovery (`generic`, `flat`, `portable`, plugins)
+2. **Config** — YAML load / deep-merge / profiles / structural diff
 3. **Patches** — load, validate, enable flags
-4. **Packs** — `pack.yml` manifest + install plan/apply
-5. **Diagnostics** — log heuristics + JSON reports
-6. **CLI** — thin argv surface over the library
+4. **Packs** — `pack.yml`, scaffold, validate, install, inventory, zip archive
+5. **Integrity** — SHA-256 lockfiles
+6. **Snapshots** — tar.gz of config + patches
+7. **Diagnostics** — log heuristics, JSON reports, follow/watch
+8. **Hooks / plugins** — extension points without forking core
+9. **CLI** — thin argv surface over the library
 
-Register a custom backend with `register_backend(...)` when an emulator's
-tree differs from the generic `patches/` + `config/` layout.
+Title-specific content lives in **packs** (or separate repos), never in core.
