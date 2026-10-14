@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import shutil
-from datetime import datetime, timezone
 from pathlib import Path
 
 from emu_simkit.backends import get_backend
+from emu_simkit.backup import backup_file
 from emu_simkit.config.merge import merge_overrides, write_yaml
 from emu_simkit.errors import PackError
 from emu_simkit.packs.manifest import load_manifest
@@ -54,15 +54,6 @@ def plan_install(
     return plan
 
 
-def _backup(path: Path) -> Path | None:
-    if not path.exists():
-        return None
-    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    bak = path.with_suffix(path.suffix + f".bak.{stamp}")
-    shutil.copy2(path, bak)
-    return bak
-
-
 def apply_plan(plan: InstallPlan) -> list[str]:
     """Execute an InstallPlan; returns human-readable action log."""
     actions: list[str] = []
@@ -76,14 +67,14 @@ def apply_plan(plan: InstallPlan) -> list[str]:
     for src, dst in plan.copies:
         dst.parent.mkdir(parents=True, exist_ok=True)
         if plan.backup:
-            _backup(dst)
+            backup_file(dst)
         shutil.copy2(src, dst)
         actions.append(f"copied {src.name} -> {dst}")
 
     for base, over, out in plan.merges:
         out.parent.mkdir(parents=True, exist_ok=True)
         if plan.backup and out.exists():
-            _backup(out)
+            backup_file(out)
         if base.exists():
             merged = merge_overrides(base, over)
         else:
