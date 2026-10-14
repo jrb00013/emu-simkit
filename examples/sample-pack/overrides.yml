@@ -1,4 +1,10 @@
+# Knobs written into config/custom_configs/config_sample-pack.yml
+# (or applied inplace if apply_mode is inplace/both)
 Core:
-  Example Knob: true
+  Example Accuracy: true
+  Max Worker Threads: 4
 Video:
   Frame limit: 30
+  Resolution Scale: 100
+Miscellaneous:
+  Start games in fullscreen mode: false
