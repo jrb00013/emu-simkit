@@ -8,7 +8,7 @@ from pathlib import Path
 
 from emu_simkit import __version__
 from emu_simkit.backends import list_backends
-from emu_simkit.config.merge import merge_overrides, write_yaml
+from emu_simkit.config.merge import merge_overrides
 from emu_simkit.diagnostics.report import DiagnosticReport, report_to_json
 from emu_simkit.packs.install import apply_plan, plan_install
 from emu_simkit.packs.manifest import load_manifest

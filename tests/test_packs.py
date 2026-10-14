@@ -1,4 +1,3 @@
-from pathlib import Path
 
 from emu_simkit.packs.install import apply_plan, plan_install
 from emu_simkit.packs.manifest import load_manifest

@@ -1,5 +1,3 @@
-import os
-from pathlib import Path
 
 from emu_simkit.paths import discover_roots, require_root
 
