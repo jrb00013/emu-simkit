@@ -12,6 +12,7 @@ import yaml
 from emu_simkit import __version__
 from emu_simkit.backends import list_backends
 from emu_simkit.config.diff import diff_mappings, format_diff
+from emu_simkit.config.inplace import apply_inplace
 from emu_simkit.config.merge import load_yaml, merge_overrides
 from emu_simkit.diagnostics.report import DiagnosticReport, report_to_json
 from emu_simkit.diagnostics.watch import follow_log
@@ -19,10 +20,9 @@ from emu_simkit.envinfo import probe
 from emu_simkit.hooks import run_hooks
 from emu_simkit.integrity import verify_lockfile, write_lockfile
 from emu_simkit.logging_util import configure_logging
-from emu_simkit.config.inplace import apply_inplace
 from emu_simkit.packs.archive import export_pack, import_pack
-from emu_simkit.packs.check import check_pack_against_root
 from emu_simkit.packs.batch import validate_many
+from emu_simkit.packs.check import check_pack_against_root
 from emu_simkit.packs.install import format_plan, install_pack, plan_install
 from emu_simkit.packs.inventory import list_installed, uninstall_pack
 from emu_simkit.packs.manifest import load_manifest
@@ -287,6 +287,11 @@ def build_parser() -> argparse.ArgumentParser:
     cd.add_argument("left")
     cd.add_argument("right")
     cd.set_defaults(func=_cmd_config_diff)
+    ca = csub.add_parser("apply", help="in-place key updates preserving file shape")
+    ca.add_argument("--target", required=True)
+    ca.add_argument("--overrides", required=True)
+    ca.add_argument("--no-backup", action="store_true")
+    ca.set_defaults(func=_cmd_config_apply)
 
     pt = sub.add_parser("patch", help="patch utilities")
     ptsub = pt.add_subparsers(dest="patch_cmd", required=True)
@@ -295,23 +300,24 @@ def build_parser() -> argparse.ArgumentParser:
     pv.set_defaults(func=_cmd_patch_validate)
 
     chk = sub.add_parser("check", help="preflight: validate pack against a root")
-chk.add_argument("pack")
-chk.add_argument("--root")
-chk.add_argument("--backend")
-chk.set_defaults(func=_cmd_check)
+    chk.add_argument("pack")
+    chk.add_argument("--root")
+    chk.add_argument("--backend")
+    chk.set_defaults(func=_cmd_check)
 
-pln = sub.add_parser("plan", help="print install plan without writing")
-pln.add_argument("pack")
-pln.add_argument("--root")
-pln.add_argument("--backend")
-pln.set_defaults(func=_cmd_plan)
+    pln = sub.add_parser("plan", help="print install plan without writing")
+    pln.add_argument("pack")
+    pln.add_argument("--root")
+    pln.add_argument("--backend")
+    pln.set_defaults(func=_cmd_plan)
 
-inst = sub.add_parser("install", help="install a pack into an emulator root")
+    inst = sub.add_parser("install", help="install a pack into an emulator root")
     inst.add_argument("pack")
     inst.add_argument("--root")
     inst.add_argument("--backend")
     inst.add_argument("--dry-run", action="store_true")
     inst.add_argument("--no-backup", action="store_true")
+    inst.add_argument("--force", action="store_true", help="skip preflight check")
     inst.set_defaults(func=_cmd_install)
 
     un = sub.add_parser("uninstall", help="uninstall a recorded pack")

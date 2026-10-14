@@ -66,17 +66,18 @@ def plan_install(
 
 
 def format_plan(plan: InstallPlan) -> str:
-    lines = [f"pack={plan.pack_name or '?'} root={plan.root} dry_run={plan.dry_run}"]
+    prefix = "DRY-RUN " if plan.dry_run else ""
+    lines = [f"{prefix}pack={plan.pack_name or '?'} root={plan.root}"]
     for src, dst in plan.copies:
-        lines.append(f"  copy   {src.name} -> {dst}")
+        lines.append(f"  {prefix}copy   {src.name} -> {dst}")
     for src, dst in plan.patch_merges:
-        lines.append(f"  merge  patch_config {src.name} -> {dst}")
+        lines.append(f"  {prefix}merge  patch_config {src.name} -> {dst}")
     for base, over, out in plan.merges:
-        lines.append(f"  custom {over.name} onto {base.name} -> {out}")
+        lines.append(f"  {prefix}custom {over.name} onto {base.name} -> {out}")
     for over, target in plan.inplaces:
-        lines.append(f"  inplace keys from {over.name} -> {target}")
+        lines.append(f"  {prefix}inplace keys from {over.name} -> {target}")
     if len(lines) == 1:
-        lines.append("  (nothing to do)")
+        lines.append(f"  {prefix}(nothing to do)")
     return "\n".join(lines)
 
 
@@ -84,7 +85,8 @@ def apply_plan(plan: InstallPlan) -> list[str]:
     """Execute an InstallPlan; returns human-readable action log."""
     actions: list[str] = []
     if plan.dry_run:
-        actions.append(format_plan(plan))
+        # one entry per line so callers can scan for DRY-RUN
+        actions.extend(format_plan(plan).splitlines())
         return actions
 
     for src, dst in plan.copies:

@@ -75,7 +75,7 @@ def check_pack_against_root(
 
     # writable?
     try:
-        root_stat = root.stat()
+        root.stat()
         if not os_access_write(root):
             result.errors.append(f"root not writable: {root}")
             result.ok = False

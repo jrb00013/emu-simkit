@@ -17,7 +17,9 @@ from emu_simkit.errors import ConfigError
 _KEY_LINE = re.compile(r"^([ \t]*)([^:#\n]+?)\s*:\s*(.*?)\s*$")
 
 
-def _flatten(overrides: dict[str, Any], prefix: tuple[str, ...] = ()) -> list[tuple[tuple[str, ...], Any]]:
+def _flatten(
+    overrides: dict[str, Any], prefix: tuple[str, ...] = ()
+) -> list[tuple[tuple[str, ...], Any]]:
     items: list[tuple[tuple[str, ...], Any]] = []
     for key, value in overrides.items():
         path = (*prefix, str(key))
@@ -110,7 +112,7 @@ def apply_inplace(
                         base_indent = m.group(1)
                         indent = base_indent + "  "
                         insert_at = i + 1
-                        # skip existing children to append at end of section? keep simple: right after header
+                        # append right after the section header
                         break
             lines.insert(insert_at, f"{indent}{leaf}: {new_val}\n")
             changes.append(f"added {'.'.join(key_path)} = {new_val}")

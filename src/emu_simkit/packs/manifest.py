@@ -7,7 +7,7 @@ from typing import Any
 
 from emu_simkit.config.merge import load_yaml, write_yaml
 from emu_simkit.errors import PackError
-from emu_simkit.types import ApplyMode, PackManifest
+from emu_simkit.types import PackManifest
 
 _VALID_APPLY: set[str] = {"custom", "inplace", "both", "none"}
 

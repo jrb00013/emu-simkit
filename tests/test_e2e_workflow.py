@@ -53,5 +53,7 @@ def test_check_plan_install_list_uninstall(tmp_path: Path):
     uninstall_pack(root, "sample-pack")
     assert list_installed(root) == []
     assert not (root / "patches" / "example_patch.yml").exists()
-    # global config and existing unrelated patch entries remain
+    # global config and merged patch_config survive uninstall
     assert (root / "config" / "config.yml").exists()
+    assert (root / "config" / "patch_config.yml").exists()  # patch_config survives
+    assert "HASH-existing" in (root / "config" / "patch_config.yml").read_text(encoding="utf-8")

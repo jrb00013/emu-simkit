@@ -44,10 +44,10 @@ def record_install(
     )
     files: list[str] = []
     if plan is not None:
+        # Only remove pack-owned artifacts. patch_config merges and inplace
+        # edits touch shared files — do not delete those on uninstall.
         files.extend(str(dst) for _, dst in plan.copies)
-        files.extend(str(dst) for _, dst in plan.patch_merges)
         files.extend(str(out) for _, _, out in plan.merges)
-        # inplace edits global config — do not delete on uninstall
     else:
         files = [Path(p).name for p in manifest.patches]
 
