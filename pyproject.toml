@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "emu-simkit"
-version = "0.1.0"
+version = "0.2.0"
 description = "Generalized toolkit for console emulator/simulator packs: config, patches, install, diagnostics, pluggable backends"
 readme = "README.md"
 license = { text = "MIT" }
