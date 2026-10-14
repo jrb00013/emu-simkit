@@ -1,0 +1,11 @@
+name: sample-pack
+version: 0.1.0
+description: Minimal example pack for emu-simkit
+backend: generic
+titles:
+  - EXAMPLE00000
+patches:
+  - example_patch.yml
+overrides:
+  - overrides.yml
+patch_config: patch_config.yml
