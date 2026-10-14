@@ -20,11 +20,11 @@ from emu_simkit.hooks import run_hooks
 from emu_simkit.integrity import verify_lockfile, write_lockfile
 from emu_simkit.logging_util import configure_logging
 from emu_simkit.packs.archive import export_pack, import_pack
+from emu_simkit.packs.batch import validate_many
 from emu_simkit.packs.install import install_pack
 from emu_simkit.packs.inventory import list_installed, uninstall_pack
 from emu_simkit.packs.manifest import load_manifest
 from emu_simkit.packs.scaffold import scaffold_pack
-from emu_simkit.packs.batch import validate_many
 from emu_simkit.packs.validate import validate_pack
 from emu_simkit.patches.loader import load_patch_file
 from emu_simkit.patches.validate import validate_patch_doc
